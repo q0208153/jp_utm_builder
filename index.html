@@ -368,6 +368,20 @@ h1 em{color:var(--tdk);font-style:normal;}
 
   <!-- 프리셋 관리 탭 -->
   <div class="tab-pane" id="tab-manage">
+    <div class="card" style="margin-bottom:13px;">
+      <div class="card-label">📡 Google Sheets 연동</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button onclick="syncFromSheet()" id="sync-btn" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:9px;border:1.5px solid var(--teal);background:var(--tdim);color:var(--tdk);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;" onmouseover="this.style.background='var(--teal)';this.style.color='#fff'" onmouseout="this.style.background='var(--tdim)';this.style.color='var(--tdk)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          시트에서 프리셋 불러오기
+        </button>
+        <span id="sync-status" style="font-family:var(--mono);font-size:11px;color:var(--dim);"></span>
+      </div>
+      <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.6;">
+        💡 Google Sheets에서 type / label / value 를 관리하면 버튼 한 번으로 프리셋이 동기화됩니다.<br>
+        시트의 <b>conten-mo</b> 타입도 자동으로 <b>content-mo</b>로 매핑됩니다.
+      </div>
+    </div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
       <button onclick="resetPresets()" style="padding:8px 16px;border-radius:8px;border:1.5px solid #d4bfbb;background:#fff;color:#6b5a56;font-family:var(--sans);font-size:13px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='#d94f4f';this.style.color='#d94f4f'" onmouseout="this.style.borderColor='#d4bfbb';this.style.color='#6b5a56'">↩ 기본값으로 초기화</button>
     </div>
@@ -521,7 +535,7 @@ function switchTab(n){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['builder','manage','history'][i]===n));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
-  if(n==='manage')  renderManage();
+  if(n==='manage')  { renderManage(); showLastSync(); }
   if(n==='history') renderHistory();
 }
 
@@ -958,8 +972,110 @@ const MMETA=[
   {key:'campaign',title:'utm_campaign'},
   {key:'term',title:'utm_term (검색 키워드)', note:'utm_term 프리셋을 등록하면 드롭다운에서 빠르게 선택할 수 있습니다.'},
   {key:'content-pc',title:'utm_content — PC',note:'이름에 "베네피아" 또는 "휴가샵" 포함 시 채널 선택에 따라 자동 필터링됩니다.'},
-  {key:'content-mo',title:'utm_content — MO',note:'이름에 "베네피아" 또는 "휴가샵" 포함 시 채널 선택에 따라 자동 필터링됩니다.'},
+  {key:'content-mo',title:'utm_content — MO',note:'이름에 "베네피아" 또는 "휴가샵" 포함 시 채널 선택에 따라 자동 필터링됩니다. 시트의 conten-mo 타입도 자동 매핑됩니다.'},
 ];
+// ══ Google Sheets CSV 동기화 ══
+var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXZmYDGGCCK0OoNSk6qq8Hl2Kc7EF0FDiH65gklFLHaCzhKhpToxuZTbHYGY9Td1I48-Fg2wCUAxdl/pub?gid=0&single=true&output=csv';
+
+// type 매핑 (시트 표기 → 내부 키)
+var TYPE_MAP = {
+  'source':      'source',
+  'medium':      'medium',
+  'campaign':    'campaign',
+  'content-pc':  'content-pc',
+  'content-mo':  'content-mo',
+  'conten-mo':   'content-mo',  // 시트 오타 자동 매핑
+  'term':        'term',
+};
+
+function parseCSV(text) {
+  var lines = text.trim().split(/\r?\n/);
+  var headers = lines[0].split(',').map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var cols = splitCSVLine(lines[i]);
+    if (!cols[0] || !cols[0].trim()) continue;
+    var row = {};
+    headers.forEach(function(h, idx){ row[h] = (cols[idx]||'').replace(/^"|"$/g,'').trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function splitCSVLine(line) {
+  var result = [], cur = '', inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    var ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function syncFromSheet() {
+  var btn = document.getElementById('sync-btn');
+  var status = document.getElementById('sync-status');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  status.textContent = '⏳ 시트에서 불러오는 중...';
+  status.style.color = 'var(--muted)';
+
+  // CORS 우회: 공개 CSV URL은 fetch 가능
+  fetch(SHEET_CSV_URL)
+    .then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(text){
+      var rows = parseCSV(text);
+      // type별 그룹핑
+      var grouped = {};
+      rows.forEach(function(row){
+        var rawType = (row['type']||'').trim().toLowerCase();
+        var mappedType = TYPE_MAP[rawType];
+        if (!mappedType) return; // 알 수 없는 type 무시
+        var label = row['label']||'';
+        var val   = row['value']||'';
+        if (!label || !val) return; // label/value 없으면 스킵
+        if (!grouped[mappedType]) grouped[mappedType] = [];
+        grouped[mappedType].push({label: label, value: val});
+      });
+
+      // localStorage에 저장 (히스토리·발행URL은 유지)
+      var d = ld();
+      Object.keys(grouped).forEach(function(k){ d[k] = grouped[k]; });
+      sv(d);
+
+      var total = Object.values(grouped).reduce(function(s,a){ return s+a.length; }, 0);
+      status.textContent = '✅ ' + total + '개 항목 동기화 완료 (' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) + ')';
+      status.style.color = 'var(--tdk)';
+      renderManage();
+      toast('📡 시트에서 ' + total + '개 프리셋 동기화 완료!');
+    })
+    .catch(function(err){
+      console.error('Sheet sync error:', err);
+      status.textContent = '❌ 불러오기 실패: ' + err.message;
+      status.style.color = 'var(--red)';
+      toast('시트 연결에 실패했어요. 시트가 공개 상태인지 확인해주세요.');
+    })
+    .finally(function(){
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+}
+
+// 마지막 동기화 시각 표시 (탭 전환 시)
+function showLastSync() {
+  var d = ld();
+  var status = document.getElementById('sync-status');
+  if (d._lastSync && status) {
+    status.textContent = '마지막 동기화: ' + d._lastSync;
+    status.style.color = 'var(--dim)';
+  }
+}
+
 function resetPresets(){
   if(!confirm('모든 프리셋을 기본값으로 초기화할까요? 직접 추가한 항목은 삭제됩니다.')) return;
   const d = ld();
@@ -1039,6 +1155,39 @@ window.addEventListener('scroll',()=>{
 
 // ══ 초기화 ══
 renderDone();
+// 페이지 로드 시 자동으로 시트 동기화 시도
+(function autoSync(){
+  // 이미 시트에서 받은 데이터가 없으면 자동 동기화
+  var d = ld();
+  if (!d._lastSync) {
+    setTimeout(function(){
+      var status = document.getElementById('sync-status');
+      if(status) { status.textContent = '⏳ 초기 동기화 중...'; status.style.color='var(--muted)'; }
+      fetch(SHEET_CSV_URL)
+        .then(function(res){ return res.text(); })
+        .then(function(text){
+          var rows = parseCSV(text);
+          var grouped = {};
+          rows.forEach(function(row){
+            var rawType = (row['type']||'').trim().toLowerCase();
+            var mappedType = TYPE_MAP[rawType];
+            if (!mappedType) return;
+            var label = row['label']||'';
+            var val   = row['value']||'';
+            if (!label || !val) return;
+            if (!grouped[mappedType]) grouped[mappedType] = [];
+            grouped[mappedType].push({label:label, value:val});
+          });
+          var d2 = ld();
+          Object.keys(grouped).forEach(function(k){ d2[k] = grouped[k]; });
+          d2._lastSync = new Date().toLocaleString('ko-KR');
+          sv(d2);
+          if(status){ status.textContent = '✅ 자동 동기화 완료'; status.style.color='var(--tdk)'; }
+        })
+        .catch(function(){ /* 자동 동기화 실패는 조용히 무시 */ });
+    }, 800);
+  }
+})();
 </script>
 </body>
 </html>
