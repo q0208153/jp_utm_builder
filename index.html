@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTM URL 빌더_jp (DB 연동형)</title>
+<title>UTM URL 빌더_jp (Final Edition)</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -21,6 +21,35 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:var(--fs);min-height:100vh;padding:32px 16px 100px;}
 .wrap{max-width:940px;margin:0 auto;}
+
+/* --- Glass 3D Water Drop Button Style --- */
+.glass-btn {
+  border: none;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 4px 6px rgba(255,255,255,0.8), 0 4px 15px rgba(0,0,0,0.1), inset 0 -2px 5px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--tdk);
+  border: 1px solid rgba(255,255,255,0.5);
+  padding: 0 15px;
+  white-space: nowrap;
+}
+.glass-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,1), 0 6px 20px rgba(127,215,211,0.3);
+  background: rgba(255, 255, 255, 0.6);
+}
+.glass-btn:active { transform: translateY(1px); box-shadow: inset 0 4px 10px rgba(0,0,0,0.1); }
+.glass-btn.red { color: var(--red); }
+.glass-btn.blue { color: #4facfe; }
+
 .header{margin-bottom:20px;}
 .eyebrow{font-family:var(--mono);font-size:10px;color:var(--tdk);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
 h1{font-size:26px;font-weight:700;letter-spacing:-.4px;}
@@ -34,51 +63,39 @@ h1 em{color:var(--tdk);font-style:normal;}
 .card-label::after{content:'';flex:1;height:1px;background:var(--bd);min-width:12px;}
 .ch-btns{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 .ch-btn{flex:1;min-width:180px;padding:13px 10px;border-radius:11px;border:2px solid var(--bd);background:var(--sf2);cursor:pointer;transition:all .18s;text-align:center;}
-.ch-btn .ch-name{font-size:14px;font-weight:700;color:var(--text);display:block;margin-bottom:3px;}
-.ch-btn .ch-url-label{font-family:var(--mono);font-size:9px;color:var(--dim);}
 .ch-btn.active{border-color:var(--teal);background:var(--tdim);}
 .ch-btn.active .ch-name{color:var(--tdk);}
-.ch-btn.active .ch-url-label{color:var(--tdk);opacity:.8;}
-.ch-btn:hover:not(.active){border-color:var(--tbd);}
 .domain-display{display:flex;align-items:center;gap:10px;background:var(--sf2);border:1.5px solid var(--tbd);border-radius:9px;padding:11px 14px;}
-.domain-label{font-family:var(--mono);font-size:10px;color:var(--muted);flex-shrink:0;letter-spacing:1px;}
-.domain-value{font-family:var(--mono);font-size:var(--fs);color:var(--tdk);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.domain-placeholder{color:var(--dim);font-weight:400;font-style:italic;}
 .param-row{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;margin-bottom:12px;}
 .ptag{font-family:var(--mono);font-size:11px;color:var(--tdk);background:var(--tdim);padding:8px;border-radius:7px;border:1px solid var(--tbd);text-align:center;font-weight:500;}
 .dw{position:relative;}
-.dd-input{width:100%;background:var(--sf2);border:1.5px solid var(--bd);border-radius:9px;padding:11px 34px 11px 13px;color:var(--text);font-family:var(--mono);font-size:var(--fs);outline:none;transition:border-color .18s;}
-.dd-list{position:fixed;background:var(--surface);border:1.5px solid var(--teal);border-radius:10px;box-shadow:var(--sh2);z-index:9999;display:none;max-height:220px;overflow-y:auto;}
+.dd-input{width:100%;background:var(--sf2);border:1.5px solid var(--bd);border-radius:9px;padding:11px 34px 11px 13px;color:var(--text);font-family:var(--mono);font-size:var(--fs);outline:none;transition:border-color 0.18s;}
+
+.dd-list{position:absolute; background:var(--surface); border:1.5px solid var(--teal); border-radius:10px; box-shadow:var(--sh2); z-index:9999; display:none; max-height:220px; overflow-y:auto; width:100%; top:calc(100% + 4px); left:0;}
 .dd-list.open{display:block;}
-.ddi{padding:10px 14px;font-family:var(--mono);font-size:var(--fs);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);}
-.ddi.sel{background:var(--tdim);color:var(--tdk);font-weight:500;}
+.ddi{padding:10px 14px;font-family:var(--mono);font-size:var(--fs);color:var(--text);cursor:pointer;border-bottom:1px solid var(--bd);}
+.ddi:hover{background:var(--tdim);}
+
 .promo-fields{display:grid;grid-template-columns:180px 1fr;gap:10px;margin-bottom:14px;}
 .promo-inp{width:100%;background:var(--surface);border:1.5px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:var(--fs);outline:none;}
-.count-row{display:flex;align-items:center;gap:10px;}
-.cnt-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--bd);background:var(--surface);cursor:pointer;font-weight:700;}
 .ct-table{width:100%;border-collapse:collapse;}
 .ct-table th{font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 13px;background:var(--sf3);border-bottom:1px solid var(--bd);text-align:left;}
 .ct-row td{padding:11px 13px;vertical-align:middle;border-bottom:1px solid var(--bd);}
-.inline-dd{width:100%;background:var(--sf2);border:1.5px solid var(--bd);border-radius:8px;padding:8px;font-size:var(--fs);cursor:pointer;}
 
-/* 일괄발행 그룹 박스 스타일 */
-.done-batch-card{background:var(--surface);border:2px solid var(--teal);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 18px rgba(127,215,211,0.18);overflow:hidden;}
-.done-batch-header{background:var(--tdim);border-bottom:1.5px solid var(--tbd);padding:12px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.batch-icon{font-size:16px;}
-.batch-label{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--tdk);letter-spacing:0.5px;}
-.done-batch-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
-.done-card-in-batch{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;margin-bottom:0;box-shadow:none;}
-.done-card-in-batch .done-header{padding:8px 13px;background:transparent;border-bottom:1px solid var(--bd);}
-.done-card-in-batch .done-body{padding:9px 13px;}
+/* --- 그룹 박스 (Batch 스타일) --- */
+.done-batch-card{background:var(--surface);border:2px solid var(--teal);border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:0 4px 18px rgba(127,215,211,0.18);}
+.done-batch-header{background:var(--tdim);border-bottom:1.5px solid var(--tbd);padding:12px 18px;display:flex;align-items:center;gap:8px;font-weight:700;color:var(--tdk);}
+.done-batch-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px;background:rgba(127,215,211,0.03);}
 
-/* 완성 URL 카드 스타일 */
 .done-card{background:var(--surface);border:1px solid var(--bd);border-radius:13px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh);}
-.done-header{background:var(--sf3);border-bottom:1px solid var(--bd);padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:11px;flex-wrap:wrap;}
-.done-tag{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:4px;font-weight:500;}
-.done-tag.ch{background:var(--tdim);color:var(--tdk);border:1px solid var(--tbd);}
-.done-tag.ct{background:#fde8e4;color:#b85a50;border:1px solid #f0c0b8;}
+.done-card-in-batch{border-color:rgba(127,215,211,0.3);box-shadow:none;margin-bottom:0;}
+.done-header{background:var(--sf3);border-bottom:1px solid var(--bd);padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:11px;}
 .done-body{padding:13px 16px;display:flex;align-items:flex-start;gap:10px;}
-.done-url-text{flex:1;font-family:var(--mono);font-size:11px;word-break:break-all;line-height:1.65;}
+.done-url-text{flex:1;font-family:var(--mono);word-break:break-all;font-size:11px;line-height:1.6;}
+.done-tag{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+.done-tag.ch{background:var(--tdk);color:#fff;}
+.done-tag.ct{background:var(--tdim);color:var(--tdk);border:1px solid var(--tbd);}
+
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;padding:11px 22px;border-radius:9px;opacity:0;transition:all .28s;z-index:10000;}
 .toast.show{opacity:1;}
 </style>
@@ -108,58 +125,58 @@ h1 em{color:var(--tdk);font-style:normal;}
 
     <div class="card">
       <div class="card-label">② UTM 파라미터</div>
-      <div class="param-row"><div class="ptag">utm_source</div><div class="dw"><input class="dd-input" id="f-source" placeholder="출처" oninput="onInp('source')" onfocus="openDD('source')"><div class="dd-list" id="dl-source"></div></div></div>
-      <div class="param-row"><div class="ptag">utm_medium</div><div class="dw"><input class="dd-input" id="f-medium" placeholder="매체" oninput="onInp('medium')" onfocus="openDD('medium')"><div class="dd-list" id="dl-medium"></div></div></div>
-      <div class="param-row"><div class="ptag">utm_campaign</div><div class="dw"><input class="dd-input" id="f-campaign" placeholder="캠페인" oninput="onInp('campaign')" onfocus="openDD('campaign')"><div class="dd-list" id="dl-campaign"></div></div></div>
+      <div class="param-row"><div class="ptag">utm_source</div><div class="dw"><input class="dd-input" id="f-source" placeholder="출처" oninput="onInp('source')" onclick="openDD('source')" onfocus="openDD('source')"><div class="dd-list" id="dl-source"></div></div></div>
+      <div class="param-row"><div class="ptag">utm_medium</div><div class="dw"><input class="dd-input" id="f-medium" placeholder="매체" oninput="onInp('medium')" onclick="openDD('medium')" onfocus="openDD('medium')"><div class="dd-list" id="dl-medium"></div></div></div>
+      <div class="param-row"><div class="ptag">utm_campaign</div><div class="dw"><input class="dd-input" id="f-campaign" placeholder="캠페인" oninput="onInp('campaign')" onclick="openDD('campaign')" onfocus="openDD('campaign')"><div class="dd-list" id="dl-campaign"></div></div></div>
     </div>
 
     <div class="card">
       <div class="card-label">③ 프로모션 URL</div>
-      <div class="promo-single">
-        <div class="promo-fields">
-          <div><div class="promo-inp-label">URL 이름</div><input class="promo-inp" id="promo-name" oninput="renderContentTable()"></div>
-          <div><div class="promo-inp-label">경로</div><input class="promo-inp" id="promo-path" placeholder="/example" oninput="renderContentTable()"></div>
-        </div>
-        <div class="count-row">
-          <span class="count-label">행 개수</span>
-          <button class="cnt-btn" onclick="changeCount(-1)">−</button>
-          <span class="count-val" id="count-display">0</span>
-          <button class="cnt-btn" onclick="changeCount(1)">+</button>
-        </div>
+      <div class="promo-fields">
+        <div><div class="promo-inp-label">URL 이름 (옵션)</div><input class="promo-inp" id="promo-name" oninput="renderContentTable()"></div>
+        <div><div class="promo-inp-label">경로 (Path)</div><input class="promo-inp" id="promo-path" placeholder="/example" oninput="renderContentTable()"></div>
+      </div>
+      <div class="count-row">
+        <span>행 개수</span>
+        <button class="cnt-btn" onclick="changeCount(-1)">−</button>
+        <span class="count-val" id="count-display">0</span>
+        <button class="cnt-btn" onclick="changeCount(1)">+</button>
       </div>
     </div>
 
     <div class="card">
       <div class="card-label">③-b 검색 키워드</div>
-      <div class="param-row"><div class="ptag">utm_term</div><div class="dw"><input class="dd-input" id="f-term" placeholder="키워드" oninput="onInp('term')" onfocus="openDD('term')"><div class="dd-list" id="dl-term"></div></div></div>
+      <div class="param-row"><div class="ptag">utm_term</div><div class="dw"><input class="dd-input" id="f-term" placeholder="키워드" oninput="onInp('term')" onclick="openDD('term')" onfocus="openDD('term')"><div class="dd-list" id="dl-term"></div></div></div>
     </div>
 
     <div class="card" style="border-color:var(--teal);">
       <div class="card-label">④ 콘텐츠 설정 &amp; 발행 <span id="ch-badge" style="display:none; font-size:10px; background:var(--tdim); color:var(--tdk); padding:2px 6px; border-radius:4px; margin-left:10px;"></span></div>
       <div id="content-table-wrap"></div>
-      <div class="bulk-pub-wrap" id="bulk-pub-wrap" style="display:none; margin-top:15px;">
-        <button class="bulk-pub" onclick="publishAll()" style="width:100%; padding:12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">🚀 전체 일괄 발행</button>
+      <div id="bulk-pub-wrap" style="display:none; margin-top:15px;">
+        <button class="glass-btn" onclick="publishAll()" style="width:100%; height:45px; font-size:15px;">🚀 전체 일괄 발행</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-label">✅ 완성 URL</div>
+      <div class="card-label">✅ 완성 URL <span style="font-size:10px; color:var(--dim); font-weight:normal; margin-left:10px;">(매일 자정 자동 삭제)</span></div>
       <div id="done-list"><div class="done-empty">발행된 URL이 없습니다.</div></div>
     </div>
   </div>
 
   <div class="tab-pane" id="tab-manage">
-    <div class="card"><button onclick="syncAll()" id="sync-btn">데이터 동기화</button><div id="sync-status"></div></div>
+    <div class="card" style="display:flex; align-items:center; gap:15px;">
+      <button onclick="syncAll()" id="sync-btn" class="glass-btn" style="padding:0 25px; height:40px;">데이터 동기화</button>
+      <div id="sync-status" style="font-size:12px; color:var(--muted); font-family:var(--mono);"></div>
+    </div>
     <div id="mc"></div>
   </div>
 
-  <div class="tab-pane" id="tab-history"><div id="hl"></div></div>
+  <div class="tab-pane" id="tab-history"><div id="hl" style="padding:10px;"></div></div>
 </div>
 
 <div class="toast" id="toast-el"></div>
 
 <script>
-// --- 설정 ---
 const URL_CHANNELS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXZmYDGGCCK0OoNSk6qq8Hl2Kc7EF0FDiH65gklFLHaCzhKhpToxuZTbHYGY9Td1I48-Fg2wCUAxdl/pub?gid=1386824060&single=true&output=csv';
 const URL_PRESETS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXZmYDGGCCK0OoNSk6qq8Hl2Kc7EF0FDiH65gklFLHaCzhKhpToxuZTbHYGY9Td1I48-Fg2wCUAxdl/pub?gid=0&single=true&output=csv';
 
@@ -189,9 +206,9 @@ function parseCSV(text) {
 async function syncAll() {
   try {
     const [cRes, pRes] = await Promise.all([fetch(URL_CHANNELS), fetch(URL_PRESETS)]);
-    const [cText, pText] = await Promise.all([cRes.text(), pRes.text()]);
+    const cRows = parseCSV(await cRes.text());
+    const pRows = parseCSV(await pRes.text());
     
-    const cRows = parseCSV(cText);
     const chContainer = document.getElementById('ch-container');
     chContainer.innerHTML = '';
     CH_DATA = {};
@@ -201,17 +218,18 @@ async function syncAll() {
       const b = document.createElement('button');
       b.className = 'ch-btn'; b.id = `ch-${row.id}`;
       b.onclick = () => selectChannel(row.id);
-      b.innerHTML = `<span class="ch-name">${e(row.name)}</span><span class="ch-url-label">${e(row.url)}</span>`;
+      b.innerHTML = `<span class="ch-name">${e(row.name)}</span><span style="font-size:9px; color:#aaa; display:block;">${e(row.url)}</span>`;
       chContainer.appendChild(b);
     });
 
-    const pRows = parseCSV(pText);
     PRESET_DATA = { source:[], medium:[], campaign:[], term:[], 'content-pc':[], 'content-mo':[] };
     pRows.forEach(row => {
       const type = row.type?.toLowerCase().replace('conten-mo','content-mo');
       if(PRESET_DATA[type]) PRESET_DATA[type].push({label:row.label, value:row.value});
     });
 
+    const now = new Date();
+    document.getElementById('sync-status').textContent = `최근 동기화: ${now.toLocaleDateString()} ${now.toLocaleTimeString('ko-KR', {hour12:false})}:${now.getMilliseconds().toString().padStart(3,'0')}`;
     toast("데이터 연동 완료 ✅");
     renderContentTable();
   } catch(err) { toast("연동 실패 ❌"); }
@@ -227,235 +245,194 @@ function selectChannel(id){
   renderContentTable();
 }
 
+function openDD(k){
+  document.querySelectorAll('.dd-list').forEach(l => l.classList.remove('open'));
+  const dl = document.getElementById('dl-'+k);
+  dl.classList.add('open');
+  renderDDList(k, v('f-'+k));
+}
+
+function renderDDList(k, q){
+  const dl = document.getElementById('dl-'+k);
+  const items = (PRESET_DATA[k]||[]).filter(i => i.label.toLowerCase().includes(q.toLowerCase()) || i.value.toLowerCase().includes(q.toLowerCase()));
+  dl.innerHTML = items.map(i => `<div class="ddi" onmousedown="selDD('${k}','${e(i.value)}')">${e(i.label)} <small style="color:#aaa">${e(i.value)}</small></div>`).join('');
+  if(items.length === 0) dl.innerHTML = '<div class="ddi" style="color:#ccc">결과 없음</div>';
+}
+
+function selDD(k, v){ document.getElementById('f-'+k).value = v; document.getElementById('dl-'+k).classList.remove('open'); renderContentTable(); }
+
 function buildUrl(domain, path, src, med, camp, term, ct){
   if(!domain) return '';
   let base = domain.replace(/\/$/,'');
   if(path.trim()){ base += (path.trim().startsWith('/') ? '' : '/') + path.trim(); }
   const sep = base.includes('?') ? '&' : '?';
-  const ps = [
-    src ? `utm_source=${encodeURIComponent(src)}` : '',
-    med ? `utm_medium=${encodeURIComponent(med)}` : '',
-    camp? `utm_campaign=${encodeURIComponent(camp)}` : '',
-    term? `utm_term=${encodeURIComponent(term)}` : '',
-    ct  ? `utm_content=${encodeURIComponent(ct)}` : ''
-  ].filter(Boolean).join('&');
+  const ps = [src?`utm_source=${encodeURIComponent(src)}`:'', med?`utm_medium=${encodeURIComponent(med)}`:'', camp?`utm_campaign=${encodeURIComponent(camp)}`:'', term?`utm_term=${encodeURIComponent(term)}`:'', ct?`utm_content=${encodeURIComponent(ct)}`:''].filter(Boolean).join('&');
   return ps ? base + sep + ps : base;
 }
+
+function changeCount(d){ rowCount = Math.max(0, rowCount+d); document.getElementById('count-display').textContent = rowCount; renderContentTable(); }
 
 function renderContentTable(){
   const wrap = document.getElementById('content-table-wrap');
   if(!rowCount){ wrap.innerHTML = '<div style="color:#aaa; padding:10px;">행을 추가하세요.</div>'; return; }
-  
   const domain = CH_DATA[selCh]?.url || '';
   const kw = CH_DATA[selCh]?.kw || '';
-  
   let html = `<table class="ct-table"><thead><tr><th>#</th><th>미리보기</th><th>콘텐츠</th><th>발행</th></tr></thead><tbody>`;
   for(let i=0; i<rowCount; i++){
     const ct = rowCts[i] || {value:''};
     const fullUrl = buildUrl(domain, v('promo-path'), v('f-source'), v('f-medium'), v('f-campaign'), v('f-term'), ct.value);
-    html += `<tr class="ct-row">
-      <td>${i+1}</td>
-      <td style="font-size:10px; max-width:250px; word-break:break-all;">${e(fullUrl)}</td>
-      <td>
-        <select class="inline-dd" onchange="selInline(${i}, this)">
-          <option value="">선택</option>
-          ${[...(PRESET_DATA['content-pc']||[]), ...(PRESET_DATA['content-mo']||[])]
-            .filter(item => !kw || item.label.includes(kw))
-            .map(item => `<option value="${e(item.value)}" ${ct.value===item.value?'selected':''}>${e(item.label)}</option>`).join('')}
-        </select>
-      </td>
-      <td><button onclick="publishRow(${i})">발행</button></td>
-    </tr>`;
+    html += `<tr class="ct-row"><td>${i+1}</td><td style="font-size:10px; max-width:250px; word-break:break-all;">${e(fullUrl)}</td><td><select class="inline-dd" onchange="selInline(${i}, this)"><option value="">선택</option>${[...PRESET_DATA['content-pc'], ...PRESET_DATA['content-mo']].filter(item => !kw || item.label.includes(kw)).map(item => `<option value="${e(item.value)}" ${ct.value===item.value?'selected':''}>${e(item.label)}</option>`).join('')}</select></td><td><button class="glass-btn" onclick="publishRow(${i})" style="height:30px; font-size:11px;">발행</button></td></tr>`;
   }
   wrap.innerHTML = html + `</tbody></table>`;
   document.getElementById('bulk-pub-wrap').style.display = 'block';
 }
 
-function selInline(idx, el){
-  rowCts[idx] = {label: el.options[el.selectedIndex].text, value: el.value};
-  renderContentTable();
-}
-
-// ══ 발행 로직 (완성 URL 카드 생성 및 히스토리 저장) ══
-function makeEntry(idx){
-  const ct = rowCts[idx]; if(!ct?.value) return null;
-  const domain = CH_DATA[selCh]?.url || '';
-  const path = v('promo-path'), src = v('f-source'), med = v('f-medium'), camp = v('f-campaign'), term = v('f-term');
-  const finalUrl = buildUrl(domain, path, src, med, camp, term, ct.value);
-  if(!finalUrl) return null;
-  const now = new Date();
-  return {
-    id: Date.now() + idx,
-    date: now.toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit'}),
-    time: now.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit', second:'2-digit'}),
-    channel: CH_DATA[selCh]?.name || '—',
-    source: src, medium: med, campaign: camp, term: term,
-    ctLabel: ct.label, ctType: ct.label.includes('모바일') ? 'mo' : 'pc',
-    url: finalUrl
-  };
-}
+function selInline(idx, el){ rowCts[idx] = {label: el.options[el.selectedIndex].text, value: el.value}; renderContentTable(); }
 
 function publishRow(idx){
   if(!selCh) { toast("채널을 선택하세요!"); return; }
+  if(!rowCts[idx]?.value) { toast("콘텐츠를 선택하세요!"); return; }
   const entry = makeEntry(idx);
-  if(!entry) { toast("콘텐츠를 선택하세요!"); return; }
-  
-  saveToStorageAndRender(entry);
-  toast('🚀 발행 완료!');
+  addDone(entry);
+  addHist(entry);
 }
 
 function publishAll(){
   if(!selCh) { toast("채널을 선택하세요!"); return; }
-  const entries = [];
-  for(let i=0; i<rowCount; i++){
-    const entry = makeEntry(i);
-    if(entry) entries.push(entry);
-  }
-  if(!entries.length) { toast("발행할 항목이 없습니다."); return; }
-
-  const batchId = Date.now();
-  entries.forEach((entry, idx) => {
-    entry.batchId = batchId;
-    saveToStorageAndRender(entry, true);
-  });
-  renderDone();
-  toast(`🚀 ${entries.length}개 일괄 발행 완료!`);
+  const batch = [], bId = Date.now();
+  for(let i=0; i<rowCount; i++) { if(rowCts[i]?.value) { const ent = makeEntry(i); ent.batchId = bId; batch.push(ent); } }
+  if(!batch.length) return;
+  batch.forEach(ent => { addDone(ent, true); addHist(ent, true); });
+  renderDone(); renderHistory(); toast(`${batch.length}개 일괄 발행!`);
 }
 
-function saveToStorageAndRender(entry, skipRender = false){
-  // 완성 URL 저장 (localStorage)
-  const done = JSON.parse(localStorage.getItem('utm_done') || '[]');
+function makeEntry(idx){
+  const url = buildUrl(CH_DATA[selCh].url, v('promo-path'), v('f-source'), v('f-medium'), v('f-campaign'), v('f-term'), rowCts[idx].value);
+  return { id: Date.now() + idx, url, label: rowCts[idx].label, channel: CH_DATA[selCh].name, date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), timestamp: Date.now() };
+}
+
+function addDone(entry, isBatch = false){
+  const done = JSON.parse(localStorage.getItem('utm_done_jp') || '[]');
   done.unshift(entry);
-  localStorage.setItem('utm_done', JSON.stringify(done));
-  
-  // 히스토리 저장
-  addHist(entry.url, entry.ctLabel);
-  
-  if(!skipRender) renderDone();
+  localStorage.setItem('utm_done_jp', JSON.stringify(done));
+  if(!isBatch) renderDone();
 }
 
-function renderDone(){
-  const done = JSON.parse(localStorage.getItem('utm_done') || '[]');
-  const el = document.getElementById('done-list');
-  if(!done.length) { el.innerHTML = '<div class="done-empty">발행된 URL이 없습니다.</div>'; return; }
+function addHist(entry, isBatch = false){
+  const hist = JSON.parse(localStorage.getItem('utm_history_jp') || '[]');
+  hist.unshift(entry);
+  if(hist.length > 50) hist.pop();
+  localStorage.setItem('utm_history_jp', JSON.stringify(hist));
+  if(!isBatch) renderHistory();
+}
 
-  const groups = [];
-  const seenBatch = {};
-  done.forEach(entry => {
-    if(entry.batchId){
-      if(seenBatch[entry.batchId] === undefined){
-        seenBatch[entry.batchId] = groups.length;
-        groups.push({type:'batch', batchId:entry.batchId, entries:[entry]});
-      } else {
-        groups[seenBatch[entry.batchId]].entries.push(entry);
-      }
-    } else {
-      groups.push({type:'single', entry:entry});
+// --- 완성 URL 렌더링 (당일 데이터만 유지) ---
+function renderDone(){
+  const done = JSON.parse(localStorage.getItem('utm_done_jp') || '[]');
+  const today = new Date().toLocaleDateString();
+  const filtered = done.filter(ent => ent.date === today); // 오늘 생성된 것만 필터링
+  localStorage.setItem('utm_done_jp', JSON.stringify(filtered)); // 자정 지난 데이터 영구 삭제
+
+  const el = document.getElementById('done-list');
+  if(!filtered.length) { el.innerHTML = '<div class="done-empty">발행된 URL이 없습니다. (매일 자정 초기화)</div>'; return; }
+  el.innerHTML = groupEntries(filtered).map(group => renderGroupUI(group, 'done')).join('');
+}
+
+// --- 히스토리 렌더링 (박스 처리 포함) ---
+function renderHistory(){
+  const hist = JSON.parse(localStorage.getItem('utm_history_jp') || '[]');
+  const el = document.getElementById('hl');
+  if(!hist.length) { el.innerHTML = '<div style="color:#aaa; text-align:center;">기록이 없습니다.</div>'; return; }
+  el.innerHTML = groupEntries(hist).map(group => renderGroupUI(group, 'history')).join('');
+}
+
+// --- 공통 그룹화 로직 ---
+function groupEntries(data){
+  const groups = []; let lastBatch = null;
+  data.forEach(ent => {
+    if(ent.batchId && ent.batchId === lastBatch?.id) { lastBatch.items.push(ent); }
+    else {
+      const g = { id: ent.batchId || null, items: [ent], isBatch: !!ent.batchId };
+      groups.push(g);
+      if(g.isBatch) lastBatch = g; else lastBatch = null;
     }
   });
-
-  el.innerHTML = groups.map(group => {
-    if(group.type === 'single') return renderSingleCard(group.entry);
-    const first = group.entries[0];
-    return `<div class="done-batch-card">
-      <div class="done-batch-header">
-        <span class="batch-icon">🚀</span>
-        <span class="batch-label">일괄 발행 ${group.entries.length}개</span>
-        <span style="font-size:11px; color:var(--muted); margin-left:10px;">📅 ${first.date} ${first.time}</span>
-      </div>
-      <div class="done-batch-body">${group.entries.map(e => renderSingleCard(e, true)).join('')}</div>
-    </div>`;
-  }).join('');
+  return groups;
 }
 
-function renderSingleCard(entry, inBatch = false){
-  const cls = inBatch ? 'done-card done-card-in-batch' : 'done-card';
-  return `<div class="${cls}">
+function renderGroupUI(group, type){
+  if(group.isBatch){
+    return `<div class="done-batch-card">
+      <div class="done-batch-header">🚀 일괄 발행 그룹 (${group.items.length}) <span style="font-size:10px; margin-left:auto; opacity:0.7;">${group.items[0].time}</span></div>
+      <div class="done-batch-body">${group.items.map(ent => renderSingleUI(ent, type, true)).join('')}</div>
+    </div>`;
+  }
+  return renderSingleUI(group.items[0], type, false);
+}
+
+function renderSingleUI(ent, type, inBatch){
+  return `<div class="done-card ${inBatch?'done-card-in-batch':''}">
     <div class="done-header">
-      ${!inBatch ? `<span>📅 ${entry.date} ${entry.time}</span> <span class="done-tag ch">${e(entry.channel)}</span>` : ''}
-      <span class="done-tag ct">${e(entry.ctLabel)}</span>
-      ${entry.source ? `<span class="done-tag ct" style="background:#eee; color:#666">src: ${e(entry.source)}</span>` : ''}
+      <span class="done-tag ch">${e(ent.channel)}</span> <span class="done-tag ct">${e(ent.label)}</span>
+      <span style="margin-left:auto; opacity:0.6;">${ent.time}</span>
     </div>
     <div class="done-body">
-      <div class="done-url-text">${e(entry.url)}</div>
-      <div style="display:flex; gap:5px;">
-        <button onclick="copy('${ea(entry.url)}')" style="padding:5px 10px; font-size:11px; cursor:pointer;">복사</button>
-        <button onclick="deleteDone(${entry.id})" style="padding:5px 10px; font-size:11px; cursor:pointer; color:var(--red)">삭제</button>
+      <div class="done-url-text">${e(ent.url)}</div>
+      <div style="display:flex; gap:8px;">
+        <button class="glass-btn" style="height:32px;" onclick="copy('${ea(ent.url)}')">복사</button>
+        ${type === 'history' ? `<button class="glass-btn blue" style="height:32px;" onclick="loadH('${ea(ent.url)}')">수정</button>` : `<button class="glass-btn red" style="height:32px;" onclick="deleteDone(${ent.id})">삭제</button>`}
       </div>
     </div>
   </div>`;
 }
 
+// --- 값 불러오기 (수정 모드) ---
+function loadH(url){
+  try {
+    const qi = url.indexOf('?'); if(qi < 0) return;
+    const base = url.slice(0, qi), qs = url.slice(qi+1), p = {};
+    qs.split('&').forEach(s => { const [k, v] = s.split('='); p[decodeURIComponent(k)] = decodeURIComponent(v); });
+    
+    // 파라미터 복원
+    document.getElementById('f-source').value = p.utm_source || '';
+    document.getElementById('f-medium').value = p.utm_medium || '';
+    document.getElementById('f-campaign').value = p.utm_campaign || '';
+    document.getElementById('f-term').value = p.utm_term || '';
+    
+    // 채널 감지 및 복원
+    for(let id in CH_DATA){
+      if(base.startsWith(CH_DATA[id].url)) {
+        selectChannel(id);
+        const pathPart = base.replace(CH_DATA[id].url, '');
+        document.getElementById('promo-path').value = pathPart;
+        break;
+      }
+    }
+    
+    switchTab('builder');
+    toast("기존 데이터를 불러왔습니다! ✏️");
+    renderContentTable();
+  } catch(err) { toast("불러오기 실패 ❌"); }
+}
+
 function deleteDone(id){
-  const done = JSON.parse(localStorage.getItem('utm_done') || '[]');
-  const filtered = done.filter(item => item.id !== id);
-  localStorage.setItem('utm_done', JSON.stringify(filtered));
+  const done = JSON.parse(localStorage.getItem('utm_done_jp') || '[]');
+  localStorage.setItem('utm_done_jp', JSON.stringify(done.filter(ent => ent.id !== id)));
   renderDone();
 }
 
-function addHist(url, label){
-  const h = JSON.parse(localStorage.getItem('utm_history') || '[]');
-  const now = new Date();
-  h.unshift({
-    url, label,
-    date: now.toLocaleDateString('ko-KR'),
-    time: now.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})
-  });
-  if(h.length > 50) h.pop();
-  localStorage.setItem('utm_history', JSON.stringify(h));
-}
-
-function renderHistory(){
-  const h = JSON.parse(localStorage.getItem('utm_history') || '[]');
-  const el = document.getElementById('hl');
-  if(!h.length) { el.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">히스토리가 없습니다.</div>'; return; }
-  
-  el.innerHTML = h.map(item => `
-    <div style="background:var(--sf2); padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid var(--bd); cursor:pointer;" onclick="loadH('${ea(item.url)}')">
-      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--dim); margin-bottom:4px;">
-        <span>${item.date} ${item.time}</span>
-        <span style="color:var(--tdk); font-weight:700;">${e(item.label)}</span>
-      </div>
-      <div style="font-family:var(--mono); font-size:11px; word-break:break-all;">${e(item.url)}</div>
-    </div>
-  `).join('');
-}
-
-function copy(txt){ navigator.clipboard.writeText(txt); toast("복사되었습니다! 📋"); }
-function changeCount(d){ rowCount = Math.max(0, rowCount+d); document.getElementById('count-display').textContent = rowCount; renderContentTable(); }
+function copy(txt){ navigator.clipboard.writeText(txt); toast("복사완료! 📋"); }
+function onInp(k){ renderDDList(k, v('f-'+k)); }
 function switchTab(n){
   document.querySelectorAll('.tab-btn, .tab-pane').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick*="${n}"]`).classList.add('active');
+  const target = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.includes(n==='builder'?'URL':n==='manage'?'프리셋':'히스토리'));
+  if(target) target.classList.add('active');
   document.getElementById('tab-'+n).classList.add('active');
   if(n === 'history') renderHistory();
 }
 
-// 드롭다운 로직
-function onInp(k){ renderDDList(k, v('f-'+k)); }
-function openDD(k){ document.getElementById('dl-'+k).classList.add('open'); renderDDList(k, v('f-'+k)); }
-function renderDDList(k, q){
-  const dl = document.getElementById('dl-'+k);
-  const items = (PRESET_DATA[k]||[]).filter(i => i.label.toLowerCase().includes(q.toLowerCase()) || i.value.toLowerCase().includes(q.toLowerCase()));
-  dl.innerHTML = items.map(i => `<div class="ddi" onmousedown="selDD('${k}','${e(i.value)}')">${e(i.label)} <small style="color:#aaa">${e(i.value)}</small></div>`).join('');
-}
-function selDD(k, v){ document.getElementById('f-'+k).value = v; document.querySelectorAll('.dd-list').forEach(l=>l.classList.remove('open')); renderContentTable(); }
+document.addEventListener('mousedown', (e) => { if(!e.target.closest('.dw')) document.querySelectorAll('.dd-list').forEach(l => l.classList.remove('open')); });
 
-function loadH(url){
-  const qi = url.indexOf('?'); if(qi < 0) return;
-  const base = url.slice(0, qi), qs = url.slice(qi+1);
-  const p = {};
-  qs.split('&').forEach(s => { const [k, v] = s.split('='); p[decodeURIComponent(k)] = decodeURIComponent(v); });
-  
-  if(p.utm_source) document.getElementById('f-source').value = p.utm_source;
-  if(p.utm_medium) document.getElementById('f-medium').value = p.utm_medium;
-  if(p.utm_campaign) document.getElementById('f-campaign').value = p.utm_campaign;
-  if(p.utm_term) document.getElementById('f-term').value = p.utm_term;
-  
-  for(let id in CH_DATA){ if(base.includes(CH_DATA[id].url.replace('https://',''))) { selectChannel(id); break; } }
-  switchTab('builder');
-}
-
-// 초기화
 syncAll();
 renderDone();
 </script>
