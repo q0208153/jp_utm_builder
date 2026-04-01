@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GA4 UTM URL 빌더</title>
+<title>UTM URL 빌더_jp</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -35,7 +35,7 @@ h1 em{color:var(--tdk);font-style:normal;}
 
 /* 카드 */
 .card{background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;margin-bottom:13px;box-shadow:var(--sh);}
-.card-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.card-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700;}
 .card-label::after{content:'';flex:1;height:1px;background:var(--bd);min-width:12px;}
 
 /* 채널 선택 */
@@ -138,6 +138,16 @@ h1 em{color:var(--tdk);font-style:normal;}
 .bulk-pub:disabled{background:var(--bd2);box-shadow:none;cursor:not-allowed;transform:none;}
 .bulk-hint{font-size:12px;color:var(--muted);flex-shrink:0;}
 
+/* 일괄발행 그룹 박스 */
+.done-batch-card{background:var(--surface);border:2px solid var(--teal);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 18px rgba(127,215,211,.18);overflow:hidden;}
+.done-batch-header{background:var(--tdim);border-bottom:1.5px solid var(--tbd);padding:12px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.batch-icon{font-size:16px;}
+.batch-label{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--tdk);letter-spacing:.5px;}
+.done-batch-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
+.done-card-in-batch{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;margin-bottom:0;box-shadow:none;}
+.done-card-in-batch .done-header{padding:8px 13px;background:transparent;border-bottom:1px solid var(--bd);}
+.done-card-in-batch .done-body{padding:9px 13px;}
+
 /* 완성 URL */
 .done-card{background:var(--surface);border:1px solid var(--bd);border-radius:13px;margin-bottom:10px;box-shadow:var(--sh);overflow:hidden;}
 .done-header{background:var(--sf3);border-bottom:1px solid var(--bd);padding:11px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -222,7 +232,7 @@ h1 em{color:var(--tdk);font-style:normal;}
 <div class="wrap">
   <div class="header">
     <div class="eyebrow">// ga4 utm builder</div>
-    <h1>UTM URL 빌더 <em>_</em></h1>
+    <h1>UTM URL 빌더<em>_jp</em></h1>
   </div>
 
   <div class="tabs">
@@ -310,6 +320,22 @@ h1 em{color:var(--tdk);font-style:normal;}
             <button class="cnt-btn" onclick="changeCount(1)">+</button>
           </div>
           <span class="count-hint">개 (+ 버튼으로 추가)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③-b 키워드 (utm_term) -->
+    <div class="card">
+      <div class="card-label">③-b 검색 키워드
+        <span style="font-size:11px;color:var(--dim);letter-spacing:0;margin-left:2px;">utm_term (선택)</span>
+      </div>
+      <div class="param-row">
+        <div class="ptag">utm_term</div>
+        <div class="dw" id="dw-term">
+          <input class="dd-input" id="f-term" placeholder="키워드 직접 입력 또는 선택 (선택사항)" autocomplete="off"
+            oninput="onInp('term')" onfocus="openDD('term')" onclick="openDD('term')">
+          <span class="dd-arrow">▼</span>
+          <div class="dd-list" id="dl-term"></div>
         </div>
       </div>
     </div>
@@ -438,6 +464,7 @@ const DEFAULTS = {
     {label:'휴가샵_띠배너',          value:'hujashop_strip_banner'},
     {label:'휴가샵_팝업',            value:'hujashop_popup'},
   ],
+  term: [],
   'content-mo': [
     {label:'베네피아_모바일빌보드',    value:'benepia_mobile_billboard'},
     {label:'베네피아_모바일서브배너',  value:'benepia_mobile_sub_banner'},
@@ -576,7 +603,7 @@ function changeCount(d){
 }
 
 // ══ URL 빌드 ══
-function buildUrl(domain, path, src, med, camp, ct){
+function buildUrl(domain, path, src, med, camp, ct, term){
   if(!domain) return '';
   // 도메인 + 경로 합치기
   const cleanPath = path.trim();
@@ -592,6 +619,7 @@ function buildUrl(domain, path, src, med, camp, ct){
     med  ?`utm_medium=${encodeURIComponent(med)}`   :'',
     camp ?`utm_campaign=${encodeURIComponent(camp)}`:'',
     ct   ?`utm_content=${encodeURIComponent(ct)}`   :'',
+    term ?`utm_term=${encodeURIComponent(term)}`     :'',
   ].filter(Boolean).join('&');
   return ps?base+sep+ps:base;
 }
@@ -612,8 +640,9 @@ function renderContentTable(){
   const src    = v('f-source');
   const med    = v('f-medium');
   const camp   = v('f-campaign');
+  const term   = v('f-term');
   // 콘텐츠 없는 베이스 URL (미리보기)
-  const baseUrl= buildUrl(domain,path,src,med,camp,'');
+  const baseUrl= buildUrl(domain,path,src,med,camp,'',term);
 
   const rows = [];
   for(let i=0;i<rowCount;i++){
@@ -621,7 +650,7 @@ function renderContentTable(){
     const ctVal=ct?.value||'';
     const ctLabel=ct?.label||'';
     const ctType=ct?.type||'';
-    const fullUrl=ctVal?buildUrl(domain,path,src,med,camp,ctVal):'';
+    const fullUrl=ctVal?buildUrl(domain,path,src,med,camp,ctVal,term):'';
     rows.push({i,ct,ctVal,ctLabel,ctType,baseUrl,fullUrl});
   }
 
@@ -719,8 +748,8 @@ function makeEntry(idx){
   const ct=rowCts[idx]; if(!ct?.value)return null;
   const domain=selCh?CH_URLS[selCh]:'';
   const path=document.getElementById('promo-path').value;
-  const src=v('f-source'),med=v('f-medium'),camp=v('f-campaign');
-  const finalUrl=buildUrl(domain,path,src,med,camp,ct.value);
+  const src=v('f-source'),med=v('f-medium'),camp=v('f-campaign'),term=v('f-term');
+  const finalUrl=buildUrl(domain,path,src,med,camp,ct.value,term);
   if(!finalUrl)return null;
   const now=new Date();
   return{
@@ -728,7 +757,7 @@ function makeEntry(idx){
     date:now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}),
     time:now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
     channel:selCh?CH_LABEL[selCh]:'—',
-    source:src,medium:med,campaign:camp,
+    source:src,medium:med,campaign:camp,term:term,
     ctLabel:ct.label,ctType:ct.type,url:finalUrl,
   };
 }
@@ -748,8 +777,16 @@ function publishAll(){
     if(entry) entries.push(entry);
   }
   if(!entries.length){toast('콘텐츠를 선택한 항목이 없어요');return;}
+  // 일괄발행 그룹 ID (같은 시간에 발행된 항목 묶기용)
+  const batchId = Date.now();
   const done=getD();
-  entries.forEach(entry=>{done.unshift(entry);addHist(entry.url,entry.ctType.toUpperCase());});
+  entries.forEach(function(entry,idx){
+    entry.batchId = batchId;
+    entry.batchTotal = entries.length;
+    entry.batchIdx = idx;
+    done.unshift(entry);
+    addHist(entry.url,entry.ctType.toUpperCase());
+  });
   svD(done); renderDone();
   toast(`🚀 ${entries.length}개 일괄 발행 완료!`);
   document.getElementById('done-list').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -759,25 +796,70 @@ function publishAll(){
 function renderDone(){
   const done=getD(), el=document.getElementById('done-list');
   if(!done.length){el.innerHTML='<div class="done-empty">아직 발행된 URL이 없어요.</div>';return;}
-  el.innerHTML=done.map(entry=>`
-    <div class="done-card" id="dc-${entry.id}">
-      <div class="done-header">
-        <span class="done-time">📅 ${entry.date}&nbsp;&nbsp;${entry.time}</span>
-        <span class="done-tag ch">${e(entry.channel)}</span>
-        ${entry.source?`<span class="done-tag ct">src: ${e(entry.source)}</span>`:''}
-        ${entry.medium?`<span class="done-tag ct">med: ${e(entry.medium)}</span>`:''}
-        ${entry.campaign?`<span class="done-tag ct">cmp: ${e(entry.campaign)}</span>`:''}
-        <span class="done-tag ct">${entry.ctType?entry.ctType.toUpperCase()+' · ':''}${e(entry.ctLabel)}</span>
-      </div>
-      <div class="done-body">
-        <span class="done-type ${entry.ctType||'pc'}">${(entry.ctType||'pc').toUpperCase()}</span>
-        <span class="done-url-text">${e(entry.url)}</span>
-        <div class="done-actions">
-          <button class="d-copy" id="dcb-${entry.id}" onclick="copyDone('${ea(entry.url)}',${entry.id})">복사</button>
-          <button class="d-del" onclick="deleteDone(${entry.id})">삭제</button>
+
+  // 일괄발행(batchId) 기준으로 그룹핑, 개별발행은 그대로
+  const groups = [];
+  const seenBatch = {};
+  done.forEach(function(entry){
+    if(entry.batchId){
+      if(seenBatch[entry.batchId] === undefined){
+        seenBatch[entry.batchId] = groups.length;
+        groups.push({type:'batch', batchId:entry.batchId, entries:[entry]});
+      } else {
+        groups[seenBatch[entry.batchId]].entries.push(entry);
+      }
+    } else {
+      groups.push({type:'single', entry:entry});
+    }
+  });
+
+  el.innerHTML = groups.map(function(group){
+    if(group.type === 'single'){
+      var entry = group.entry;
+      return renderSingleDone(entry);
+    } else {
+      // 일괄발행 그룹 박스
+      var first = group.entries[0];
+      return `<div class="done-batch-card">
+        <div class="done-batch-header">
+          <span class="batch-icon">🚀</span>
+          <span class="batch-label">일괄 발행 ${group.entries.length}개</span>
+          <span class="done-time">&nbsp;&nbsp;📅 ${first.date}&nbsp;&nbsp;${first.time}</span>
+          <span class="done-tag ch">${e(first.channel)}</span>
+          ${first.source?`<span class="done-tag ct">src: ${e(first.source)}</span>`:''}
+          ${first.medium?`<span class="done-tag ct">med: ${e(first.medium)}</span>`:''}
+          ${first.campaign?`<span class="done-tag ct">cmp: ${e(first.campaign)}</span>`:''}
+          ${first.term?`<span class="done-tag ct">term: ${e(first.term)}</span>`:''}
         </div>
+        <div class="done-batch-body">
+          ${group.entries.map(function(entry){ return renderSingleDone(entry, true); }).join('')}
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function renderSingleDone(entry, inBatch){
+  var cls = inBatch ? 'done-card done-card-in-batch' : 'done-card';
+  return `<div class="${cls}" id="dc-${entry.id}">
+    <div class="done-header">
+      ${!inBatch ? `<span class="done-time">📅 ${entry.date}&nbsp;&nbsp;${entry.time}</span>
+      <span class="done-tag ch">${e(entry.channel)}</span>
+      ${entry.source?`<span class="done-tag ct">src: ${e(entry.source)}</span>`:''}
+      ${entry.medium?`<span class="done-tag ct">med: ${e(entry.medium)}</span>`:''}
+      ${entry.campaign?`<span class="done-tag ct">cmp: ${e(entry.campaign)}</span>`:''}
+      ${entry.term?`<span class="done-tag ct">term: ${e(entry.term)}</span>`:''}` : ''}
+      <span class="done-tag ct">${entry.ctType?entry.ctType.toUpperCase()+' · ':''}${e(entry.ctLabel)}</span>
+    </div>
+    <div class="done-body">
+      <span class="done-type ${entry.ctType||'pc'}">${(entry.ctType||'pc').toUpperCase()}</span>
+      <span class="done-url-text">${e(entry.url)}</span>
+      <div class="done-actions">
+        <button class="d-copy" id="dcb-${entry.id}" onclick="copyDone('${ea(entry.url)}',${entry.id})">복사</button>
+        <button class="d-del" onclick="deleteDone(${entry.id})">삭제</button>
       </div>
-    </div>`).join('');
+    </div>
+  </div>`;
 }
 function copyDone(url,id){
   navigator.clipboard.writeText(url).then(()=>{
@@ -849,8 +931,8 @@ function loadH(url){
 function exportExcel(){
   const done=getD();
   if(!done.length){toast('발행된 URL이 없어요');return;}
-  const headers=['날짜','시간','채널','utm_source','utm_medium','utm_campaign','콘텐츠유형','콘텐츠명','완성 URL'];
-  const rows=done.map(d=>[d.date,d.time,d.channel,d.source||'',d.medium||'',d.campaign||'',(d.ctType||'').toUpperCase(),d.ctLabel||'',d.url]);
+  const headers=['날짜','시간','채널','utm_source','utm_medium','utm_campaign','utm_term','콘텐츠유형','콘텐츠명','완성 URL'];
+  const rows=done.map(d=>[d.date,d.time,d.channel,d.source||'',d.medium||'',d.campaign||'',d.term||'',(d.ctType||'').toUpperCase(),d.ctLabel||'',d.url]);
   let html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
     <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
     <x:Name>UTM 발행 목록</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
@@ -874,6 +956,7 @@ const MMETA=[
   {key:'source',title:'utm_source'},
   {key:'medium',title:'utm_medium'},
   {key:'campaign',title:'utm_campaign'},
+  {key:'term',title:'utm_term (검색 키워드)', note:'utm_term 프리셋을 등록하면 드롭다운에서 빠르게 선택할 수 있습니다.'},
   {key:'content-pc',title:'utm_content — PC',note:'이름에 "베네피아" 또는 "휴가샵" 포함 시 채널 선택에 따라 자동 필터링됩니다.'},
   {key:'content-mo',title:'utm_content — MO',note:'이름에 "베네피아" 또는 "휴가샵" 포함 시 채널 선택에 따라 자동 필터링됩니다.'},
 ];
